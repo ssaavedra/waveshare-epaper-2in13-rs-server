@@ -18,6 +18,27 @@ cargo run --release
 
 The demo draws a border, a couple of shapes, and text, then sends the panel to sleep.
 
+## CLI
+
+- `cargo run --release -- write --text "Hello"`: init (unless `--noinit`), render text, sleep. Add `--fast` for the fast LUT.
+- `cargo run --release -- clear`: init (unless `--noinit`), clear, sleep.
+- `cargo run --release -- repl`: interactive stdin REPL. Commands: `/clear`, `/partial`, `/nopartial`; other lines are rendered. Exits on EOF.
+- `cargo run --release -- serve --socket /tmp/eink.sock`: REPL-like service over a Unix socket (default `/tmp/eink.sock`). Removes any stale socket before binding.
+
+### Socket protocol (newline-delimited)
+
+- `TEXT <msg>` or a bare line: render text (supports `\n` escapes). Replies `OK TEXT` or `IGNORED EMPTY`.
+- `CLEAR`: clears the display. Reply: `OK CLEAR`.
+- `PARTIAL_ON`: send a blank base frame then enable partial updates for subsequent text. Reply: `OK PARTIAL_ON`.
+- `PARTIAL_OFF`: return to full updates. Reply: `OK PARTIAL_OFF`.
+- `PING`: health check. Reply: `PONG`.
+
+Example client:
+
+```bash
+printf 'TEXT hello\\nPING\\n' | socat - UNIX-CONNECT:/tmp/eink.sock
+```
+
 ## Library overview
 
 - `Epd2in13V4`: driver with `init`, `display`, `display_fast`, `display_base`, `display_partial`, `clear`, and `sleep`.
