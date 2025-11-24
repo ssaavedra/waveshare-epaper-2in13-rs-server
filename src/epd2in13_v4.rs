@@ -49,6 +49,7 @@ use thiserror::Error;
 pub struct EpdPins {
     pub busy: u8,
     pub dc: u8,
+    pub cs: u8,
     pub rst: u8,
 }
 
@@ -73,6 +74,7 @@ pub struct Epd2in13V4 {
     spi: Spi,
     busy: InputPin,
     dc: OutputPin,
+    cs: OutputPin,
     rst: OutputPin,
     bytes_per_row: usize,
 }
@@ -93,11 +95,13 @@ impl Epd2in13V4 {
         let busy = gpio.get(pins.busy)?.into_input();
         let dc = gpio.get(pins.dc)?.into_output();
         let rst = gpio.get(pins.rst)?.into_output();
+        let cs = gpio.get(pins.cs)?.into_output();
         let bytes_per_row = ((Self::WIDTH as usize) + 7) / 8;
         Ok(Self {
             spi,
             busy,
             dc,
+            cs,
             rst,
             bytes_per_row,
         })
@@ -172,7 +176,7 @@ impl Epd2in13V4 {
     }
 
     pub fn display_partial(&mut self, image: &[u8]) -> Result<(), EpdError> {
-        self.reset()?; // partial updates need a short reset
+        self.fast_reset()?; // partial updates need a short reset
         self.command_data(0x3C, &[0x80])?;
         self.command_data(0x01, &[0xF9, 0x00, 0x00])?;
         self.command_data(0x11, &[0x03])?;
@@ -209,6 +213,13 @@ impl Epd2in13V4 {
         sleep(Duration::from_millis(2));
         self.rst.set_high();
         sleep(Duration::from_millis(20));
+        Ok(())
+    }
+
+    fn fast_reset(&mut self) -> Result<(), EpdError> {
+        self.rst.set_low();
+        sleep(Duration::from_millis(1));
+        self.rst.set_high();
         Ok(())
     }
 
@@ -259,13 +270,17 @@ impl Epd2in13V4 {
 
     fn command(&mut self, command: u8) -> Result<(), EpdError> {
         self.dc.set_low();
+        self.cs.set_low();
         self.spi.write(&[command])?;
+        self.cs.set_high();
         Ok(())
     }
 
     fn data(&mut self, data: &[u8]) -> Result<(), EpdError> {
         self.dc.set_high();
+        self.cs.set_low();
         self.spi.write(data)?;
+        self.cs.set_high();
         Ok(())
     }
 
