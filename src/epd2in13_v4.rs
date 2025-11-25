@@ -3,8 +3,8 @@
 /// It supports full, fast, and partial updates, as well as clearing the display
 /// and putting the display to sleep.
 /// 
-/// Copyright (c) 2024 Santiago Saavedra
-/// Copyright (c) 2023 Waveshare Team
+/// Copyright (c) 2025 Santiago Saavedra - Initial Rust version
+/// Copyright (c) 2023 Waveshare Team - Original specifications
 /// 
 /// Original copyright notice from Waveshare:
 // # *****************************************************************************
