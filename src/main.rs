@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use embedded_graphics::{
-    mono_font::{ascii::FONT_10X20, MonoTextStyle},
+    mono_font::{ascii::FONT_6X10, MonoTextStyle},
     pixelcolor::BinaryColor,
     prelude::*,
     primitives::{PrimitiveStyle, Rectangle},
@@ -151,8 +151,9 @@ fn build_framebuffer(message: &str, fg: BinaryColor, bg: BinaryColor) -> MonoIma
     .ok();
 
     let margin = 6i32;
-    let char_width = 10usize;
-    let line_height = 20i32;
+    let font = FONT_6X10;
+    let char_width = font.character_size.width as usize;
+    let line_height = font.character_size.height as i32 + 2;
     let max_chars = ((Epd2in13V4::WIDTH as usize).saturating_sub((margin as usize) * 2)
         / char_width)
         .max(1);
@@ -160,8 +161,8 @@ fn build_framebuffer(message: &str, fg: BinaryColor, bg: BinaryColor) -> MonoIma
         / line_height as usize;
     let lines = wrap_text(message, max_chars);
 
-    let style = MonoTextStyle::new(&FONT_10X20, fg);
-    let mut y = margin + 20;
+    let style = MonoTextStyle::new(&font, fg);
+    let mut y = margin + font.character_size.height as i32;
     for line in lines.into_iter().take(max_lines) {
         Text::new(&line, Point::new(margin, y), style)
             .draw(&mut fb)
