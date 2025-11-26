@@ -9,14 +9,21 @@ Rust driver and example for the Waveshare 2.13" e‑Paper HAT (V4) on Raspberry 
 - Control pins (BCM): `BUSY=24`, `RST=17`, `DC=25` (adjust in `src/main.rs` or when constructing `EpdPins`)
 - Enable SPI in `raspi-config` and ensure the running user is in the `spi` group or run with sudo.
 
-## Build and run
+## Cross-build from your laptop into Raspberry Pi with:
 
 ```bash
-sudo apt-get install pkg-config libssl-dev # typical Rust toolchain deps on Pi
-cargo run --release
+# If Fedora:
+dnf copr enable lantw44/aarch64-linux-gnu-toolchain
+
+# If Debian:
+apt install gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+
+rustup target add aarch64-unknown-linux-musl
+cargo build --release --target aarch64-unknown-linux-musl
+
+rsnyc -pP target/aarch64-unknown-linux-musl/release/rpi-einkserver-rs alicedev1:epaper/rpi-einkserver-rs
 ```
 
-The demo draws a border, a couple of shapes, and text, then sends the panel to sleep.
 
 ## CLI
 
